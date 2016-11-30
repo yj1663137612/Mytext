@@ -1,19 +1,28 @@
 package com.example.acer.mytext;
 
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     Handler handler;
     @BindView(R.id.lst_main)
     ListView mLst_main;
+    String path;
+    File file;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         //第二步：为WebView添加一个JavascriptInterface的接口对象，这个方法接收两个参数
         //      第一个参数就是自定义的接口对象，第二个参数是一个字符串，用于js中调用android的方法
-        mWeb.addJavascriptInterface(new AndroidBridge(handler), "android");
+        mWeb.addJavascriptInterface(new AndroidBridge(handler, this), "android");
         //加载网页
         mWeb.loadUrl("file:///android_asset/idex.html");
 
@@ -109,9 +121,32 @@ public class MainActivity extends AppCompatActivity {
     class AndroidBridge {
 
         Handler handler;
+        Context context;
 
-        public AndroidBridge(Handler handler) {
+        public AndroidBridge(Handler handler, Context context) {
+            this.context = context;
             this.handler = handler;
+        }
+
+        @JavascriptInterface
+        public void getCamera() {
+            /*分析：1：系统相机是系统的东西，调用的时候需要权限:android.permission.CAMERA
+                * */
+            //2：使用意图来调用相机:MediaStore媒体中心，ACTION_IMAGE_CAPTURE：照相机
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            //3：照相的时候，照的照片需要保存下来，所以需要提供一个路径，用于保存照片
+            //判断内存卡是否挂载
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                //获取地址
+                path = Environment.getExternalStorageDirectory().getPath();
+            }
+            //获取文件
+            file = new File(path + File.separator + System.currentTimeMillis()+".jpg");
+            Log.e("地址", "" + file);
+            //设置保存路径  MediaStore.EXTRA_OUTPUT,:指的是媒体向出输出
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+            //启动回调  requestCode:请求码，>=0
+            startActivityForResult(intent, 1);
         }
 
         @JavascriptInterface
@@ -123,6 +158,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case 1:
+                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+                    Intent intent = new Intent(this, CameraActivity.class);
+                    intent.putExtra("img", bitmap);
+                    Log.e("===", "000" + bitmap);
+                    startActivity(intent);
+                    break;
+            }
         }
     }
 }
