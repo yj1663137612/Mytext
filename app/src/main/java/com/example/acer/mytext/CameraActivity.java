@@ -9,6 +9,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -26,8 +30,8 @@ public class CameraActivity extends AppCompatActivity {
         setContentView(R.layout.camera_activity);
         ButterKnife.bind(this);
         Intent intent = this.getIntent();
-        Bitmap img = intent.getParcelableExtra("img");
-        Log.e("tu==", "" + img);
-        mImg.setImageBitmap(img);
+        File file = intent.getParcelableExtra("file");
+        Log.e("tu==", "" + file);
+        Picasso.with(this).load(file).into(mImg);
     }
 }

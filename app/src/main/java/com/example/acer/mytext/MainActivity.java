@@ -23,6 +23,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -167,10 +170,22 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case 1:
-                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+//                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+//                    try {
+//                        FileOutputStream outputStream=new FileOutputStream(file);
+//                        //压缩图片
+//                        bitmap.compress(Bitmap.CompressFormat.JPEG,90,outputStream);
+//                        outputStream.close();
+//
+//                    } catch (FileNotFoundException e) {
+//                        e.printStackTrace();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                     Intent intent = new Intent(this, CameraActivity.class);
-                    intent.putExtra("img", bitmap);
-                    Log.e("===", "000" + bitmap);
+
+                    intent.putExtra("file", file);
+
                     startActivity(intent);
                     break;
             }
